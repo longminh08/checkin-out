@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="box">
+    <h2 id="welcomeMessage">Welcome</h2>
+    <div id="content"></div>
+    <button onclick="logout()">Logout</button>
+  </div>
+
+  <script>
+    const role = localStorage.getItem("userRole");
+    const username = localStorage.getItem("username");
+
+    if (!role || !username) {
+      window.location.href = "login.html";
+    }
+
+    document.getElementById("welcomeMessage").textContent = `Welcome, ${username} (${role})`;
+    const content = document.getElementById("content");
+
+    if (role === "employee") {
+      content.innerHTML = `
+        <h3 style="color: white;">Upload Timesheet</h3>
+        <form id="uploadForm">
+          <input type="file" id="fileInput" required />
+          <button type="submit">Upload</button>
+        </form>
+        <div id="uploadStatus" style="color: white;"></div>
+      `;
+
+      document.getElementById("uploadForm").addEventListener("submit", function(e) {
+        e.preventDefault();
+
+        const fileInput = document.getElementById("fileInput");
+        if (fileInput.files.length === 0) {
+          alert("Please select a file.");
+          return;
+        }
+
+        const file = fileInput.files[0];
+        const formData = new FormData();
+        formData.append("timesheet", file);
+        formData.append("username", username);
+
+        fetch("http://localhost:3000/upload", {
+          method: "POST",
+          body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById("uploadStatus").textContent = `Uploaded: ${data.timesheet.filename}`;
+        })
+        .catch(error => {
+          console.error("Upload failed:", error);
+          document.getElementById("uploadStatus").textContent = "Upload failed.";
+        });
+      });
+
+    } else {
+  content.innerHTML = `<h3 style="color: white;">Uploaded Timesheets</h3>`;
+
+  fetch("http://localhost:3000/timesheets")
+    .then(res => res.json())
+    .then(timesheets => {
+      if (timesheets.length === 0) {
+        content.innerHTML += `<p style="color: white;">No timesheets found.</p>`;
+      } else {
+        const list = document.createElement("ul");
+        list.style.color = "white";
+
+        timesheets.forEach((ts, index) => {
+          const li = document.createElement("li");
+
+          const link = document.createElement("a");
+          link.href = ts.url;
+          link.textContent = `${index + 1}. ${ts.filename} (${ts.employee})`;
+          link.target = "_blank";
+          link.style.color = "lightblue";
+
+          li.appendChild(link);
+          list.appendChild(li);
+        });
+
+        content.appendChild(list);
+      }
+    })
+    .catch(err => {
+      console.error("Failed to load timesheets:", err);
+      content.innerHTML += `<p style="color: white;">Error loading timesheets.</p>`;
+    });
+}
+
+    function logout() {
+      localStorage.clear();
+      window.location.href = "login.html";
+    }
+  </script>
+</body>
+</html>
