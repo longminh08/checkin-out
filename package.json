@@ -1,6 +1,14 @@
 {
+  "scripts": {
+    "start": "node ./backend/server",
+    "dev": "nodemon --env-file=.env ./backend/server"
+  },
   "dependencies": {
+    "dotenv": "^17.1.0",
     "googleapis": "^150.0.1",
     "multer": "^2.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
   }
 }
