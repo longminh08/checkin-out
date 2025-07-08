@@ -12,13 +12,15 @@ const upload = multer({ dest: "temp/" });
 
 // Google Drive Auth using Service Account
 const auth = new google.auth.GoogleAuth({
-  keyFile: "./backend/apikey.json", // Replace with your service account key path
+  keyFile: "./backend/apikey.json", // Service account key path
   scopes: ["https://www.googleapis.com/auth/drive"],
 });
 const drive = google.drive({ version: "v3", auth });
 
-// Your Google Drive folder ID
-const FOLDER_ID = "1JF7g6EAjUYNWgAIwv2vRwiktxjM-sDfE";
+require("dotenv").config(); // Load environment variables
+
+// Google Drive folder ID
+const FOLDER_ID = process.env.FOLDER_ID;
 
 // Upload timesheet to Google Drive
 app.post("/upload", upload.single("timesheet"), async (req, res) => {
@@ -29,6 +31,9 @@ app.post("/upload", upload.single("timesheet"), async (req, res) => {
     const meta = {
       employee: uploader,
       timestamp: Date.now(),
+      status: "pending",
+      frontdesk: null, // Default to null, can be updated later
+      supervisor: null, // Default to null, can be updated later
     };
 
     const fileMetadata = {
@@ -84,6 +89,9 @@ app.post("/upload", upload.single("timesheet"), async (req, res) => {
 
 // List all files from Drive folder
 app.get("/timesheets", async (req, res) => {
+  const role = req.query.role;
+  const username = req.query.username;
+
   try {
     const response = await drive.files.list({
       q: `'${FOLDER_ID}' in parents and trashed = false`,
@@ -93,7 +101,7 @@ app.get("/timesheets", async (req, res) => {
     const timesheets = response.data.files.map(file => {
       let meta = {};
       try {
-        meta = JSON.parse(file.description || "{}");
+        meta = JSON.parse(file.description || "{}" );
       } catch {}
 
       return {
@@ -102,17 +110,74 @@ app.get("/timesheets", async (req, res) => {
         employee: meta.employee || "unknown",
         timestamp: meta.timestamp || null,
         url: `https://drive.google.com/file/d/${file.id}/view`,
+        status: meta.status || "pending",
+        frontdesk: meta.frontdesk || null,
+        supervisor: meta.supervisor || null
       };
     });
+    
+    const filtered = timesheets.filter(ts => {
+    if (role === "employee") return ts.employee === username;
+    if (role === "frontdesk") return ts.status === "pending" ;
+    if (role === "supervisor") return ts.status === "frontdesk-approved";
+    if (role === "payroll") return ts.status === "supervisor-approved";
+    return false;
+  });
 
-    res.json(timesheets);
+  res.json(filtered);
   } catch (err) {
     console.error("Listing error:", err);
     res.status(500).json({ error: "Failed to load timesheets" });
   }
 });
 
-const PORT = 3000;
-app.listen(PORT, () => {
-  console.log(`✅ Server running at http://localhost:${PORT}`);
+app.post("/approve", async (req, res) => {
+  const { fileId, role, approver } = req.body;
+
+  const file = await drive.files.get({
+    fileId,
+    fields: "description"
+  });
+
+  let meta = {};
+  try {
+    meta = JSON.parse(file.data.description || "{}");
+  } catch {}
+
+  if (role === "frontdesk") {
+    meta.frontdesk = approver;
+    meta.status = "frontdesk-approved";
+  } else if (role === "supervisor") {
+    meta.supervisor = approver;
+    meta.status = "supervisor-approved";
+  }
+
+  await drive.files.update({
+    fileId,
+    resource: {
+      description: JSON.stringify(meta)
+    }
+  });
+
+  res.json({ success: true });
+});
+
+app.delete("/delete", async (req, res) => {
+  try {
+    const { fileId } = req.body;
+    if (!fileId) {
+      return res.status(400).json({ success: false, error: "Missing fileId" });
+    }
+    await drive.files.delete({ fileId });
+    console.log('File deleted successfully.');
+    res.json({ success: true });
+  } catch (error) {
+    console.error(`Error deleting file from Google Drive: ${error.message}`);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+
+app.listen(3000, () => {
+  console.log(`✅ Server running at http://localhost:3000`);
 });

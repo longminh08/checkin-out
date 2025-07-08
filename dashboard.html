@@ -65,7 +65,7 @@
     } else {
   content.innerHTML = `<h3 style="color: white;">Uploaded Timesheets</h3>`;
 
-  fetch("http://localhost:3000/timesheets")
+  fetch(`http://localhost:3000/timesheets?role=${encodeURIComponent(role)}&username=${encodeURIComponent(username)}`)
     .then(res => res.json())
     .then(timesheets => {
       if (timesheets.length === 0) {
@@ -76,14 +76,27 @@
 
         timesheets.forEach((ts, index) => {
           const li = document.createElement("li");
-
           const link = document.createElement("a");
           link.href = ts.url;
-          link.textContent = `${index + 1}. ${ts.filename} (${ts.employee})`;
+          link.textContent = `${index + 1}. ${ts.filename} (Uploaded by: ${ts.employee})`;
           link.target = "_blank";
           link.style.color = "lightblue";
-
           li.appendChild(link);
+
+          // Add buttons based on role
+          if (role === "frontdesk" || role === "supervisor") {
+            const button = document.createElement("button");
+            button.textContent = "Approve";
+            button.style.marginLeft = "10px";
+            button.onclick = () => approveTimesheet(ts.id, role, username);
+            li.appendChild(button);
+          } else if (role === "payroll") {
+            const button = document.createElement("button");
+            button.textContent = "Delete";
+            button.style.marginLeft = "10px";
+            button.onclick = () => deleteFile(ts.id);
+            li.appendChild(button);
+          }
           list.appendChild(li);
         });
 
@@ -95,6 +108,49 @@
       content.innerHTML += `<p style="color: white;">Error loading timesheets.</p>`;
     });
 }
+
+  function deleteFile(fileId) {
+    fetch("http://localhost:3000/delete", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ fileId })
+    })
+      .then(res => res.json())
+      .then(result => {
+        if (result.success) {
+          alert("Deleted successfully!");
+          window.location.reload(); // Refresh to show updated list
+        } else {
+          alert("Deletion failed.");
+        }
+      })
+      .catch(err => {
+        console.error("Deletion error:", err);
+        alert("Error deleting timesheet.");
+      });
+  }
+
+  function approveTimesheet(fileId, role, approver) {
+    fetch("http://localhost:3000/approve", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ fileId, role, approver }),
+    })
+      .then(res => res.json())
+      .then(result => {
+        if (result.success) {
+          alert("Approved successfully!");
+          window.location.reload(); // Refresh to show updated list
+        } else {
+          alert("Approval failed.");
+        }
+      })
+      .catch(err => {
+        console.error("Approval error:", err);
+        alert("Error approving timesheet.");
+      });
+  }
+
 
     function logout() {
       localStorage.clear();
