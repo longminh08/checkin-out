@@ -14,6 +14,7 @@
   </div>
 
   <script>
+    const ipaddress = window.location.hostname || "localhost"; //change to your server IP if needed
     const role = localStorage.getItem("userRole");
     const username = localStorage.getItem("username");
 
@@ -27,7 +28,7 @@
     if (role === "employee") {
 
       content.innerHTML = `
-        <h3 style="color: white;">Upload Timesheet</h3>
+        <h3 style="color: white;">Upload Timesheet <span style="font-size: smaller;">(10MB limit)</span></h3>
         <form id="uploadForm">
           <input type="file" id="fileInput" required />
           <button type="submit" id="fileInput1">Upload</button>
@@ -51,25 +52,28 @@
         formData.append("timesheet", file);
         formData.append("username", username);
 
-        fetch("http://localhost:3000/upload", {
+        fetch(`http://${ipaddress}:3000/upload`, {
           method: "POST",
           body: formData
-        })/*
-        .then(response => response.json())
+        })
+        .then(response => response.json()).then( document.getElementById("uploadStatus").textContent = "Uploading...")
         .then(data => {
+          alert("Uploaded.");
           document.getElementById("uploadStatus").textContent = `Uploaded: ${data.timesheet.filename}`;
+          document.getElementById("uploadStatus").style.color = "green";
           loadEmployeeTimesheets();
         })
         .catch(error => {
           console.error("Upload failed:", error);
+          alert("Upload failed. Please try again.");
           document.getElementById("uploadStatus").textContent = "Upload failed.";
+          document.getElementById("uploadStatus").style.color = "red";
         });
-        */
       });
 
       // Function to load employee's submitted timesheets
       function loadEmployeeTimesheets() {
-        fetch(`http://localhost:3000/timesheets?role=employee&username=${encodeURIComponent(username)}`)
+        fetch(`http://${ipaddress}:3000/timesheets?role=employee&username=${encodeURIComponent(username)}`)
           .then(res => res.json())
           .then(timesheets => {
             const container = document.getElementById("employeeTimesheets");
@@ -116,7 +120,7 @@
     } else {
   content.innerHTML = `<h3 style="color: white;">Uploaded Timesheets</h3>`;
 
-  fetch(`http://localhost:3000/timesheets?role=${encodeURIComponent(role)}&username=${encodeURIComponent(username)}`)
+  fetch(`http://${ipaddress}:3000/timesheets?role=${encodeURIComponent(role)}&username=${encodeURIComponent(username)}`)
     .then(res => res.json())
     .then(timesheets => {
       if (timesheets.length === 0) {
@@ -165,7 +169,7 @@
 }
 
   function deleteFile(fileId) {
-    fetch("http://localhost:3000/delete", {
+    fetch(`http://${ipaddress}:3000/delete`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ fileId })
@@ -186,7 +190,7 @@
   }
 
   function approveTimesheet(fileId, role, approver) {
-    fetch("http://localhost:3000/approve", {
+    fetch(`http://${ipaddress}:3000/approve`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ fileId, role, approver }),
