@@ -8,7 +8,12 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const upload = multer({ dest: "temp/" });
+const upload = multer({ 
+  storage: multer.memoryStorage(),
+  limits:{
+    fileSize : 10* 1024 *1024 // `10MB limit
+  }
+});
 
 // Google Drive Auth using Service Account
 const auth = new google.auth.GoogleAuth({
@@ -44,7 +49,7 @@ app.post("/upload", upload.single("timesheet"), async (req, res) => {
 
     const media = {
       mimeType: req.file.mimetype,
-      body: fs.createReadStream(req.file.path),
+      body: require('stream').Readable.from(req.file.buffer),
     };
 
     const response = await drive.files.create({
@@ -65,13 +70,8 @@ app.post("/upload", upload.single("timesheet"), async (req, res) => {
 
     const fileUrl = `https://drive.google.com/file/d/${fileId}/view`;
 
-    try {
-      fs.unlinkSync(req.file.path); // Delete temp file
-    } catch (err) {
-      console.error("Failed to delete temp file:", err);
-    }
-
     res.json({
+      success: true,
       message: "Uploaded to Google Drive",
       timesheet: {
         id: fileId,
@@ -169,7 +169,6 @@ app.delete("/delete", async (req, res) => {
       return res.status(400).json({ success: false, error: "Missing fileId" });
     }
     await drive.files.delete({ fileId });
-    console.log('File deleted successfully.');
     res.json({ success: true });
   } catch (error) {
     console.error(`Error deleting file from Google Drive: ${error.message}`);
@@ -178,6 +177,6 @@ app.delete("/delete", async (req, res) => {
 });
 
 
-app.listen(3000, () => {
-  console.log(`✅ Server running at http://localhost:3000`);
+app.listen(3000, '0.0.0.0', () => {
+  console.log(`✅ Server running at http://0.0.0.0:3000`);
 });
