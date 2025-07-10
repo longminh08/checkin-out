@@ -5,6 +5,7 @@ const cors = require("cors");
 const { google } = require("googleapis");
 const stream = require("stream");
 require("dotenv").config();
+const supervisorMap = require("./supervisors");
 
 const app = express();
 app.use(cors());
@@ -14,11 +15,6 @@ const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 } // 10MB
 });
-
-const supervisorMap = {
-  "11": "33",
-  "1": "3"
-};
 
 const auth = new google.auth.GoogleAuth({
   keyFile: "./backend/apikey.json",
