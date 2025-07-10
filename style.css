@@ -161,3 +161,18 @@ h3 {
     margin: 0;
     padding: 8px;
   }
+
+  #employeeTimesheets,
+#uploadedTimesheets {
+  max-height: 300px;
+  overflow-y: auto;
+  padding-right: 10px;
+  margin-top: 10px;
+}
+
+#employeeTimesheets ul,
+#uploadedTimesheets ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
