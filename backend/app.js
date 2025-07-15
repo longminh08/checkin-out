@@ -17,7 +17,7 @@ const upload = multer({
 });
 
 const auth = new google.auth.GoogleAuth({
-  keyFile: "./backend/apikey.json",
+  keyFile: "../backend/apikey.json",
   scopes: ["https://www.googleapis.com/auth/drive"],
 });
 const drive = google.drive({ version: "v3", auth });

@@ -10,6 +10,7 @@ const pool = mysql.createPool({
     user: process.env.MYSQL_USER,
     password: process.env.MYSQL_PASSWORD,
     database: process.env.MYSQL_DATABASE,
+    port: process.env.MYSQL_PORT
 }).promise()
 
 const confirmLogin = async (req, res) => {
@@ -47,8 +48,7 @@ const confirmLogin = async (req, res) => {
 
 const resetPassword = async(req, res) => {
   try{
-    const username = req.body.username;
-    const password = req.body.password; 
+    const { username, password } = req.body; 
     const encryptedPassword = await bcrypt.hash(password, saltRounds);
 
     // Query DB for matching username and reset password
