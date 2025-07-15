@@ -6,6 +6,7 @@ const { google } = require("googleapis");
 const stream = require("stream");
 require("dotenv").config();
 const supervisorMap = require("./supervisors");
+const fs = require("fs");
 
 const app = express();
 app.use(cors());
@@ -15,6 +16,11 @@ const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 } // 10MB
 });
+
+// Decode and write the key file to disk
+const serviceKey = Buffer.from(process.env.GOOGLE_SERVICE_KEY, "base64").toString("utf8");
+
+fs.writeFileSync("apikey.json", serviceKey);
 
 const auth = new google.auth.GoogleAuth({
   keyFile: "../backend/apikey.json",
