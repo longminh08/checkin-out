@@ -52,7 +52,7 @@
         formData.append("timesheet", file);
         formData.append("username", username);
 
-        fetch(`https://${ipaddress}/upload`, {
+        fetch(`${ipaddress}/upload`, {
           method: "POST",
           body: formData
         })
@@ -74,7 +74,7 @@
 
       // Function to load employee's submitted timesheets
       function loadEmployeeTimesheets() {
-        fetch(`https://${ipaddress}/timesheets?role=employee&username=${encodeURIComponent(username)}`)
+        fetch(`${ipaddress}/timesheets?role=employee&username=${encodeURIComponent(username)}`)
           .then(res => res.json())
           .then(timesheets => {
             const container = document.getElementById("employeeTimesheets");
@@ -121,7 +121,7 @@
     } else {
   content.innerHTML = `<h3 style="color: white;">Uploaded Timesheets</h3>`;
 
-  fetch(`https://${ipaddress}/timesheets?role=${encodeURIComponent(role)}&username=${encodeURIComponent(username)}`)
+  fetch(`${ipaddress}/timesheets?role=${encodeURIComponent(role)}&username=${encodeURIComponent(username)}`)
     .then(res => res.json())
     .then(timesheets => {
       if (timesheets.length === 0) {
@@ -170,7 +170,7 @@
 }
 
   function deleteFile(fileId) {
-    fetch(`https://${ipaddress}/delete`, {
+    fetch(`${ipaddress}/delete`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ fileId })
@@ -191,7 +191,7 @@
   }
 
   function approveTimesheet(fileId, role, approver) {
-    fetch(`https://${ipaddress}/approve`, {
+    fetch(`${ipaddress}/approve`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ fileId, role, approver }),
