@@ -25,7 +25,7 @@
   </div>
 
   <script>
-  const ipaddress = window.location.hostname || "localhost"; //change to your server IP if needed
+  const ipaddress = "https://checkin-out.onrender.com/";
   document.getElementById("loginForm").addEventListener("submit", async function(e) {
     e.preventDefault();
 
@@ -33,7 +33,7 @@
     const password = document.getElementById("password").value.trim();
 
     try {
-      const response = await fetch(`http://${ipaddress}:3000/login`, {
+      const response = await fetch(`http://${ipaddress}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password })

@@ -14,12 +14,12 @@
   </div>
 
   <script>
-    const ipaddress = window.location.hostname || "localhost"; //change to your server IP if needed
+    const ipaddress = "https://checkin-out.onrender.com/";
     const role = localStorage.getItem("userRole");
     const username = localStorage.getItem("username");
 
     if (!role || !username) {
-      window.location.href = "login.html";
+      window.location.href = "index.html";
     }
 
     document.getElementById("welcomeMessage").textContent = `Welcome, ${username} (${role})`;
@@ -52,7 +52,7 @@
         formData.append("timesheet", file);
         formData.append("username", username);
 
-        fetch(`http://${ipaddress}:3000/upload`, {
+        fetch(`http://${ipaddress}/upload`, {
           method: "POST",
           body: formData
         })
@@ -74,7 +74,7 @@
 
       // Function to load employee's submitted timesheets
       function loadEmployeeTimesheets() {
-        fetch(`http://${ipaddress}:3000/timesheets?role=employee&username=${encodeURIComponent(username)}`)
+        fetch(`http://${ipaddress}/timesheets?role=employee&username=${encodeURIComponent(username)}`)
           .then(res => res.json())
           .then(timesheets => {
             const container = document.getElementById("employeeTimesheets");
@@ -121,7 +121,7 @@
     } else {
   content.innerHTML = `<h3 style="color: white;">Uploaded Timesheets</h3>`;
 
-  fetch(`http://${ipaddress}:3000/timesheets?role=${encodeURIComponent(role)}&username=${encodeURIComponent(username)}`)
+  fetch(`http://${ipaddress}/timesheets?role=${encodeURIComponent(role)}&username=${encodeURIComponent(username)}`)
     .then(res => res.json())
     .then(timesheets => {
       if (timesheets.length === 0) {
@@ -170,7 +170,7 @@
 }
 
   function deleteFile(fileId) {
-    fetch(`http://${ipaddress}:3000/delete`, {
+    fetch(`http://${ipaddress}/delete`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ fileId })
@@ -191,7 +191,7 @@
   }
 
   function approveTimesheet(fileId, role, approver) {
-    fetch(`http://${ipaddress}:3000/approve`, {
+    fetch(`http://${ipaddress}/approve`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ fileId, role, approver }),
@@ -214,7 +214,7 @@
 
     function logout() {
       localStorage.clear();
-      window.location.href = "login.html";
+      window.location.href = "index.html";
     }
   </script>
 </body>
