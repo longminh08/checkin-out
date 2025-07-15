@@ -23,7 +23,7 @@ const serviceKey = Buffer.from(process.env.GOOGLE_SERVICE_KEY, "base64").toStrin
 fs.writeFileSync("apikey.json", serviceKey);
 
 const auth = new google.auth.GoogleAuth({
-  keyFile: "../backend/apikey.json",
+  keyFile: serviceKey,
   scopes: ["https://www.googleapis.com/auth/drive"],
 });
 const drive = google.drive({ version: "v3", auth });
