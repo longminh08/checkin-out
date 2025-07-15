@@ -1,4 +1,3 @@
-// File: backend/server.js
 const { app, upload, uploadTimesheet, listTimesheets, approveTimesheet, deleteTimesheet } = require("./app");
 const {confirmLogin, resetPassword} = require("./database.cjs");
 

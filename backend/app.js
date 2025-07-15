@@ -17,15 +17,16 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 } // 10MB
 });
 
-// Decode and write the key file to disk
 const serviceKey = Buffer.from(process.env.GOOGLE_SERVICE_KEY, "base64").toString("utf8");
 
-fs.writeFileSync("apikey.json", serviceKey);
+const keyPath = "/tmp/apikey.json"; // safe temp directory on Render
+fs.writeFileSync(keyPath, serviceKey);
 
 const auth = new google.auth.GoogleAuth({
-  keyFile: serviceKey,
+  keyFile: keyPath,
   scopes: ["https://www.googleapis.com/auth/drive"],
 });
+
 const drive = google.drive({ version: "v3", auth });
 
 const FOLDER_ID = process.env.FOLDER_ID;
